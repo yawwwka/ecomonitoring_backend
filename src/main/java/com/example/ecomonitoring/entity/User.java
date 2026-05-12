@@ -17,7 +17,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String passwordHash;
+    private String password;
 
     @Column(name = "telegram_id")
     private String telegramId;
@@ -25,23 +25,8 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Location> locations = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<NotificationSetting> notificationSettings = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<AirQualityHistory> airQualityHistories = new ArrayList<>();
-
-    // Конструкторы
-    public User() {}
-
-    public User(String email, String passwordHash) {
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.createdAt = LocalDateTime.now();
-    }
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
 
     // Геттеры и сеттеры
     public Long getId() { return id; }
@@ -50,8 +35,8 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
     public String getTelegramId() { return telegramId; }
     public void setTelegramId(String telegramId) { this.telegramId = telegramId; }
@@ -59,12 +44,6 @@ public class User {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public List<Location> getLocations() { return locations; }
-    public void setLocations(List<Location> locations) { this.locations = locations; }
-
-    public List<NotificationSetting> getNotificationSettings() { return notificationSettings; }
-    public void setNotificationSettings(List<NotificationSetting> notificationSettings) { this.notificationSettings = notificationSettings; }
-
-    public List<AirQualityHistory> getAirQualityHistories() { return airQualityHistories; }
-    public void setAirQualityHistories(List<AirQualityHistory> airQualityHistories) { this.airQualityHistories = airQualityHistories; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }

@@ -1,5 +1,6 @@
 package com.example.ecomonitoring.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ public class City {
     private String timezone;
 
     @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<AirQualityHistory> history = new ArrayList<>();
 
     // Конструкторы
