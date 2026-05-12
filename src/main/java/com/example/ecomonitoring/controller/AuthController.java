@@ -37,7 +37,7 @@ public class AuthController {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setTelegramId(request.getTelegramId());
+        user.setMessengerId(request.getMessengerId());
         user.setCreatedAt(LocalDateTime.now());
 
         userRepository.save(user);
@@ -66,7 +66,7 @@ public class AuthController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("email", user.getEmail());
-            response.put("telegramId", user.getTelegramId());
+            response.put("messengerId", user.getMessengerId());
             response.put("role", user.getRole());
 
             return ResponseEntity.ok(response);
@@ -89,8 +89,8 @@ public class AuthController {
                 user.setEmail(updates.get("email"));
             }
 
-            if (updates.containsKey("telegramId")) {
-                user.setTelegramId(updates.get("telegramId"));
+            if (updates.containsKey("messengerId")) {
+                user.setMessengerId(updates.get("messengerId"));
             }
 
             if (updates.containsKey("password") && !updates.get("password").isEmpty()) {

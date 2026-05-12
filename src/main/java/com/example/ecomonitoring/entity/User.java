@@ -19,8 +19,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "telegram_id")
-    private String telegramId;
+    @Column(name = "messenger_id")
+    private String messengerId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -38,8 +38,8 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public String getTelegramId() { return telegramId; }
-    public void setTelegramId(String telegramId) { this.telegramId = telegramId; }
+    public String getMessengerId() { return messengerId; }
+    public void setMessengerId(String messengerId) { this.messengerId = messengerId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

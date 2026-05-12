@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CityRepository extends JpaRepository<City, Long> {
@@ -36,4 +37,6 @@ public interface CityRepository extends JpaRepository<City, Long> {
     LIMIT 10
     """, nativeQuery = true)
     List<City> searchByName(@Param("query") String query);
+
+    Optional<City> findByNameIgnoreCase(String name);
 }

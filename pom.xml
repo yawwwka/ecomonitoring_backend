@@ -120,10 +120,11 @@
             <artifactId>xmlworker</artifactId>
             <version>5.5.13.4</version>
         </dependency>
+        <!-- VK Java SDK -->
         <dependency>
-            <groupId>org.telegram</groupId>
-            <artifactId>telegrambots-springboot-longpolling-starter</artifactId>
-            <version>8.2.0</version>
+            <groupId>com.vk.api</groupId>
+            <artifactId>sdk</artifactId>
+            <version>1.0.14</version>
         </dependency>
 	</dependencies>
 

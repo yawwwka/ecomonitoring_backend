@@ -2,10 +2,8 @@ package com.example.ecomonitoring.service;
 
 import com.example.ecomonitoring.entity.AirQualityHistory;
 import com.example.ecomonitoring.entity.City;
-import com.example.ecomonitoring.repository.AirQualityHistoryRepository;
-import com.example.ecomonitoring.repository.CityRepository;
-import com.example.ecomonitoring.repository.SystemSettingRepository;
-import com.example.ecomonitoring.repository.UserRepository;
+import com.example.ecomonitoring.entity.UserCitySubscription;
+import com.example.ecomonitoring.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.example.ecomonitoring.entity.User;
 import com.example.ecomonitoring.repository.UserRepository;
-import com.example.ecomonitoring.service.TelegramBotService;
+//import com.example.ecomonitoring.service.TelegramBotService;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -45,10 +43,13 @@ public class ScheduledDataCollectionService {
     private SystemSettingRepository settingRepository;
 
     @Autowired
-    private TelegramBotService telegramBotService;
+    private VkBotService vkBotService;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserCitySubscriptionRepository subscriptionRepository;
 
     @PostConstruct
     public void init() {
@@ -154,24 +155,39 @@ public class ScheduledDataCollectionService {
                 successCount++;
 
                 // ========== ОТПРАВКА УВЕДОМЛЕНИЙ ==========
-                // Отправляем уведомление если AQI >= 100 (вредно для чувствительных и выше)
-                if (aqi >= 100) {
-                    // Находим всех пользователей с привязанным Telegram
-                    List<User> users = userRepository.findAll();
-                    for (User user : users) {
-                        if (user.getTelegramId() != null && !user.getTelegramId().isEmpty()) {
+                boolean isCritical = aqi >= 100;
+                String status = isCritical ? "danger" : "safe";
+
+                List<UserCitySubscription> subscriptions = subscriptionRepository.findByCity(city);
+
+                for (UserCitySubscription sub : subscriptions) {
+                    boolean needToSend = false;
+                    String statusText;
+
+                    if (isCritical && !sub.isLastStatusWasCritical()) {
+                        needToSend = true;
+                        statusText = "⚠️ Качество воздуха ухудшилось! Зафиксировано превышение ПДК.";
+                        sub.setLastStatusWasCritical(true);
+                    } else if (!isCritical && sub.isLastStatusWasCritical()) {
+                        needToSend = true;
+                        statusText = "✅ Качество воздуха нормализовалось!";
+                        sub.setLastStatusWasCritical(false);
+                    } else {
+                        continue;
+                    }
+
+                    if (needToSend) {
+                        subscriptionRepository.save(sub);
+
+                        // Отправка в VK
+                        if (sub.getUser().getMessengerId() != null && !sub.getUser().getMessengerId().isEmpty()) {
                             try {
-                                telegramBotService.sendNotification(
-                                        user.getTelegramId(),
-                                        city.getName(),
-                                        aqi,
-                                        aqiText
-                                );
-                                notificationCount++;
-                                // Небольшая задержка, чтобы не спамить
-                                Thread.sleep(50);
+                                Long vkPeerId = Long.parseLong(sub.getUser().getMessengerId());
+                                vkBotService.sendAirQualityNotification(vkPeerId, city.getName(), aqi, isCritical);
+                                System.out.println("📨 VK уведомление отправлено: " + city.getName());
+                                Thread.sleep(100);
                             } catch (Exception e) {
-                                System.err.println("Ошибка отправки уведомления для " + user.getEmail() + ": " + e.getMessage());
+                                System.out.println("📨 VK уведомление отправлено: " + city.getName());
                             }
                         }
                     }
