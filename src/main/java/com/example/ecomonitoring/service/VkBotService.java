@@ -14,6 +14,7 @@ import com.vk.api.sdk.objects.groups.responses.GetLongPollServerResponse;
 import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollHistoryQuery;
 import jakarta.annotation.PostConstruct;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,13 +43,7 @@ public class VkBotService {
     private String longPollKey = null;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CityRepository cityRepository;
-
-    @Autowired
-    private UserCitySubscriptionRepository subscriptionRepository;
+    private SubscriptionService subscriptionService;
 
     @PostConstruct
     public void init() {
@@ -298,43 +293,18 @@ public class VkBotService {
     }
 
     private void handleSubscribe(Long peerId, Integer userId, String cityName) {
-        // Ищем пользователя по messenger_id (VK ID)
-        String vkId = String.valueOf(userId);
-        Optional<User> userOpt = userRepository.findByMessengerId(vkId);
-
-        if (userOpt.isEmpty()) {
-            sendMessage(peerId, "⚠️ Сначала зарегистрируйтесь на сайте ЭкоМониторинг и привяжите Messenger ID в настройках профиля.\n\nВаш ID: " + vkId);
-            return;
-        }
-
-        User user = userOpt.get();
-
-        Optional<City> cityOpt = cityRepository.findByNameIgnoreCase(cityName);
-        if (cityOpt.isEmpty()) {
-            sendMessage(peerId, "❌ Город \"" + cityName + "\" не найден.");
-            return;
-        }
-
-        City city = cityOpt.get();
-
-        Optional<UserCitySubscription> existing = subscriptionRepository.findByUserAndCity(user, city);
-        if (existing.isPresent()) {
-            sendMessage(peerId, "ℹ️ Вы уже подписаны на " + city.getName());
-            return;
-        }
-
-        UserCitySubscription subscription = new UserCitySubscription(user, city);
-        subscriptionRepository.save(subscription);
-
-        sendMessage(peerId, "✅ Вы подписаны на уведомления о городе *" + city.getName() + "*");
+        String result = subscriptionService.subscribe(userId, cityName);
+        sendMessage(peerId, result);
     }
 
     private void handleUnsubscribe(Long peerId, Integer userId, String cityName) {
-        sendMessage(peerId, "❌ Вы отписаны от уведомлений о городе: " + cityName);
+        String result = subscriptionService.unsubscribe(userId, cityName);
+        sendMessage(peerId, result);
     }
 
     private void handleMySubscriptions(Long peerId, Integer userId) {
-        sendMessage(peerId, "📋 Ваши подписки:\n- Москва\n- Санкт-Петербург");
+        String result = subscriptionService.getMySubscriptions(userId);
+        sendMessage(peerId, result);
     }
 
     /**
