@@ -29,7 +29,6 @@ import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/air")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AirController {
 
     private final RestTemplate restTemplate = new RestTemplate();
